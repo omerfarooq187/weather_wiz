@@ -5,10 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,10 +45,11 @@ import java.util.Locale
 fun MainScreen(modifier: Modifier = Modifier) {
     val weatherViewModel: WeatherViewModel = hiltViewModel()
     val currentWeatherDetails = weatherViewModel.getCurrentWeather().collectAsState(initial = null)
-    val weeklyWeatherDetails = weatherViewModel.weatherDetails.collectAsState()
+    val hourlyWeatherDetails = weatherViewModel.getHourlyWeather().collectAsState(initial = emptyList())
     val lazyState = rememberLazyListState()
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxSize()
             .background(primaryContainerLight)
@@ -205,7 +204,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                         color = onPrimaryContainerLight
                     )
                 }
-                val weatherDays = weeklyWeatherDetails.value?.days
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -214,61 +213,53 @@ fun MainScreen(modifier: Modifier = Modifier) {
                         .background(surfaceBrightLight, RoundedCornerShape(20.dp))
                         .padding(8.dp)
                 ) {
-                    if (weatherDays != null) {
-                        LazyRow(
-                            state = lazyState,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            val currentDayRemainingHours = 24 - ZonedDateTime.now().hour
-                            val hours = weatherDays[0]
-                                .hours
-                                .takeLast(currentDayRemainingHours) + weatherDays[1]
-                                .hours
-                                .take(24 - currentDayRemainingHours)
-                            items(hours) {
-                                when (it.icon) {
-                                    "rain" -> {
-                                        HourlyWeather(
-                                            hourTime = getHourFromEpochMillis(it.datetimeEpoch * 1000),
-                                            resId = R.drawable.weather_rain_pixel,
-                                            temp = it.temp.toInt()
-                                        )
-                                    }
-                                    "clear-day" -> {
-                                        HourlyWeather(
-                                            hourTime = getHourFromEpochMillis(it.datetimeEpoch * 1000),
-                                            resId = R.drawable.weather_clear_day_pixel,
-                                            temp = it.temp.toInt()
-                                        )
-                                    }
-                                    "cloudy" -> {
-                                        HourlyWeather(
-                                            hourTime = getHourFromEpochMillis(it.datetimeEpoch * 1000),
-                                            resId = R.drawable.weather_cloudy_pixel,
-                                            temp = it.temp.toInt()
-                                        )
-                                    }
-                                    "partly-cloudy-day" -> {
-                                        HourlyWeather(
-                                            hourTime = getHourFromEpochMillis(it.datetimeEpoch * 1000),
-                                            resId = R.drawable.weather_partly_cloudy_day_pixel,
-                                            temp = it.temp.toInt()
-                                        )
-                                    }
-                                    "clear-night" -> {
-                                        HourlyWeather(
-                                            hourTime = getHourFromEpochMillis(it.datetimeEpoch * 1000),
-                                            resId = R.drawable.weather_clear_night_pixel,
-                                            temp = it.temp.toInt()
-                                        )
-                                    }
-                                    "partly-cloudy-night" -> {
-                                        HourlyWeather(
-                                            hourTime = getHourFromEpochMillis(it.datetimeEpoch * 1000),
-                                            resId = R.drawable.weather_partly_cloudy_night_pixel,
-                                            temp = it.temp.toInt()
-                                        )
-                                    }
+                    LazyRow(
+                        state = lazyState,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(hourlyWeatherDetails.value) {
+                            when (it.icon) {
+                                "rain" -> {
+                                    HourlyWeather(
+                                        hourTime = getHourFromEpochMillis(it.dateTimeEpoch * 1000),
+                                        resId = R.drawable.weather_rain_pixel,
+                                        temp = it.temp.toInt()
+                                    )
+                                }
+                                "clear-day" -> {
+                                    HourlyWeather(
+                                        hourTime = getHourFromEpochMillis(it.dateTimeEpoch * 1000),
+                                        resId = R.drawable.weather_clear_day_pixel,
+                                        temp = it.temp.toInt()
+                                    )
+                                }
+                                "cloudy" -> {
+                                    HourlyWeather(
+                                        hourTime = getHourFromEpochMillis(it.dateTimeEpoch * 1000),
+                                        resId = R.drawable.weather_cloudy_pixel,
+                                        temp = it.temp.toInt()
+                                    )
+                                }
+                                "partly-cloudy-day" -> {
+                                    HourlyWeather(
+                                        hourTime = getHourFromEpochMillis(it.dateTimeEpoch * 1000),
+                                        resId = R.drawable.weather_partly_cloudy_day_pixel,
+                                        temp = it.temp.toInt()
+                                    )
+                                }
+                                "clear-night" -> {
+                                    HourlyWeather(
+                                        hourTime = getHourFromEpochMillis(it.dateTimeEpoch * 1000),
+                                        resId = R.drawable.weather_clear_night_pixel,
+                                        temp = it.temp.toInt()
+                                    )
+                                }
+                                "partly-cloudy-night" -> {
+                                    HourlyWeather(
+                                        hourTime = getHourFromEpochMillis(it.dateTimeEpoch * 1000),
+                                        resId = R.drawable.weather_partly_cloudy_night_pixel,
+                                        temp = it.temp.toInt()
+                                    )
                                 }
                             }
                         }
@@ -280,11 +271,6 @@ fun MainScreen(modifier: Modifier = Modifier) {
             LoadingProgressBar()
         }
     }
-}
-
-fun getHoursFromApi() {
-    val currentDayRemainingHours = 24 - ZonedDateTime.now().hour
-
 }
 
 
@@ -317,7 +303,7 @@ fun CurrentWeatherConditions(resId: Int, conditions: String, temp: Int, feelsLik
             contentDescription = "party cloudy",
             modifier = Modifier
                 .padding(bottom = 8.dp)
-                .size(220.dp)
+                .size(180.dp)
         )
         Text(
             text = conditions,

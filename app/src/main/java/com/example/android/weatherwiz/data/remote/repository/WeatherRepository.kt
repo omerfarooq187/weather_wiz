@@ -3,6 +3,7 @@ package com.example.android.weatherwiz.data.remote.repository
 import android.util.Log
 import com.example.android.weatherwiz.data.local.room.WeatherDao
 import com.example.android.weatherwiz.data.model.CurrentWeatherEntity
+import com.example.android.weatherwiz.data.model.HourlyWeatherEntity
 import com.example.android.weatherwiz.data.remote.WeatherApi
 import com.example.android.weatherwiz.model.Weather
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 class WeatherRepository @Inject constructor(
@@ -46,6 +48,29 @@ class WeatherRepository @Inject constructor(
                                 )
                             )
                             Log.d("Current Conditions", "Database operation done")
+                        }
+
+                        val weatherDays = _weatherDetails.value?.days
+                        if (weatherDays != null) {
+                            val currentDayRemainingHours = 24 - ZonedDateTime.now().hour
+                            val hours = weatherDays[0]
+                                .hours
+                                .takeLast(currentDayRemainingHours) + weatherDays[1]
+                                .hours
+                                .take(24 - currentDayRemainingHours)
+                            var i =0
+                            while (i<hours.size) {
+                                weatherDao.insertHourlyWeatherData(
+                                    HourlyWeatherEntity(
+                                        id = i+1,
+                                        dateTimeEpoch = hours[i].datetimeEpoch,
+                                        conditions = hours[i].icon,
+                                        temp = hours[i].temp,
+                                        icon = hours[i].icon
+                                    )
+                                )
+                                i++
+                            }
                         }
                     }
                 }

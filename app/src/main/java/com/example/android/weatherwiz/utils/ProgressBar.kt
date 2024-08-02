@@ -12,7 +12,7 @@ fun LoadingProgressBar() {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
     ) {
         CircularProgressIndicator()
     }
